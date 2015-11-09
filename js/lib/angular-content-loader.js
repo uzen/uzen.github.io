@@ -171,7 +171,7 @@
                 this.busy = true;
                 
                 if (url == null) {
-                    url = 'http://api.tumblr.com/v2/blog/' + this.config.user + '.tumblr.com/posts';
+                    url = '//api.tumblr.com/v2/blog/' + this.config.user + '.tumblr.com/posts';
                     params = {
                         params: {
                             api_key: API_KEY,
