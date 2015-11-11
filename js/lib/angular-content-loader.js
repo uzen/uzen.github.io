@@ -1,20 +1,8 @@
 (function() {
     'use strict';
 
-    var app = angular.module('loader', [])
+    angular.module('loader', [])
         .constant('API_KEY', 'fuiKNFp9vQFvjLNvx4sUwti4Yb5yGutBN4Xh10LXZhhRKjWlV4')
-        .run(function($templateCache) {
-            var templates = {
-                text: '<div class="post-info" ng-bind-html="item.body"></div>',
-                photo: '<a href="{{::item.image_permalink}}"><img data-ng-src="{{::item.photos.alt.url}}" src="" class="previmg" alt=""></a><div class="post-info" ng-bind-html="item.caption"></div>',
-                video: '<div class="post-info" ng-bind-html="item.player"></div>',
-                music: '<div>Music</div>',
-                link: '<div class="link-text"><a href="{{::item.source_url}}" data-ng-bind="item.title"></a><p data-ng-bind="item.source_title"></p></div><div class="post-info" ng-bind-html="item.description"></div>'
-            };
-            for (var index in templates) {
-                $templateCache.put(index, templates[index]);
-            }
-        })
         .directive('contentItem', function($window, tumblrService) {
             return {
                 require: '^scroller',
@@ -118,7 +106,7 @@
             }
 
             function tempFn() {
-                return '<div data-ng-repeat="column in tumblr.items" style="width:{{tumblr.config.cols[1]}}px"><article data-ng-repeat="item in column track by $index"><div class="item-num"><div data-ng-include="item.type"></div><div class="meta"><a href="" class="notes">{{::item.note_count}}</a><a href="{{::item.post_url}}#comments" class="comments">Сomments</a></div></div></article></div>';
+                return '<div data-ng-repeat="column in tumblr.items" style="width:{{tumblr.config.cols[1]}}px"><article data-ng-repeat="item in column track by $index"><div class="item-num" data-ng-include="item.type"><div></article></div>';
             }
         })
         .service('tumblrService', function($http, API_KEY, DataService) {
@@ -222,6 +210,7 @@
                 postSize: null,
                 process: function(data) {
                     tumblrAPI.getData(data.type)(data);
+                    
                     return data;
                 },
                 container: function (size) {
@@ -241,6 +230,8 @@
                         case "video":
                             callback = tumblrAPI.videoCallback;
                             break;
+                        case "audio":
+                            callback = tumblrAPI.audioCallback;                        
                         case "link":
                             callback = tumblrAPI.linkCallback;
                             break;
@@ -279,6 +270,9 @@
                 },
                 videoCallback: function(data) {
                     data.player = tumblrAPI.dataHtml(data.player[1], "embed_code");
+                },
+                audioCallback: function(data) {
+                    data.player = tumblrAPI.dataHtml(data, "player");
                 },
                 linkCallback: function(data) {
                     data.description = tumblrAPI.dataHtml(data, "description");
