@@ -391,8 +391,8 @@
                     createPlaceholder();
 
                     $elem
-                        .css('position', 'fixed')
                         .css('width', $elem[0].offsetWidth + 'px')
+                        .css('position', 'fixed')
                         .css('left', $elem.css('left').replace('px', '') + 'px')
                         .css(anchor, (offset + elementsOffsetFromTop(scrollbar)) + 'px')
                         .css('margin-top', 0);
