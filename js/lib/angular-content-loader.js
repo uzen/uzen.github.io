@@ -218,7 +218,7 @@
                 postSize: null,
                 process: function(data) {
                     tumblrAPI.getData(data.type)(data);
-                    convertMeta(data);
+                    tumblrAPI.convertMeta(data);
                     
                     return data;
                 },
