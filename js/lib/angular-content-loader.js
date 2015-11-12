@@ -61,17 +61,25 @@
                 }
 
                 function getCols(elem) {
-                    var elemWidth, num500, num380;
+                    var elemWidth, num = [500, 400, 250], index = 0, min, cue;
                     elemWidth = getWH(elem, "width", false);
-                    num500 = elemWidth / 500;
-                    num380 = elemWidth / 380;
 
-                    if (customCols) {
-                        num380 = parseInt($attrs.cols);
-                    } else if (num500 - Math.floor(num500) < 0.4) {
-                        return [Math.floor(num500), 500];
+                    min = num[index];                    
+                    for (var key in num) {
+                    		cue = elemWidth % num[key];
+                    		if (min > cue) {
+                    			min = cue;
+                    			index = key;
+                    		}
                     }
-                    return [Math.floor(num380), 380];
+                    
+                    if (customCols) {
+                        cue = parseInt($attrs.cols);
+                    } else {
+                    		cue = Math.floor(elemWidth / num[index]);
+                        return [cue, Math.floor(elemWidth / cue)];
+                    }
+                    return [cue, Math.floor(elemWidth / cue)];
                 };
 
                 function getWH(d, g, k) {
@@ -170,7 +178,7 @@
                         }
                     }
                 }
-
+                
                 $http.jsonp(url, params).success(function(data, status) {
                     if (data.response.posts == null) {
                         return;
@@ -210,6 +218,7 @@
                 postSize: null,
                 process: function(data) {
                     tumblrAPI.getData(data.type)(data);
+                    convertMeta(data);
                     
                     return data;
                 },
@@ -231,12 +240,21 @@
                             callback = tumblrAPI.videoCallback;
                             break;
                         case "audio":
-                            callback = tumblrAPI.audioCallback;                        
+                            callback = tumblrAPI.audioCallback;
+                            break;                     
                         case "link":
                             callback = tumblrAPI.linkCallback;
                             break;
                     }
                     return callback;
+                },
+                convertMeta: function (data) {
+                    data.timestamp = data.timestamp * 1000;
+                    if(data.link_url != null) {
+                    		data.blog_name = data.source_title;
+                    }
+                    
+                    data.avatar = '//api.tumblr.com/v2/blog/' + data.blog_name + '.tumblr.com/avatar/64';
                 },
                 dataHtml: function(data, obj) {
                     return $sce.trustAsHtml(data[obj]);

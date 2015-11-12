@@ -11,7 +11,7 @@
                 music: '<div>Music</div>',
                 link: '<div class="link-text"><a href="{{::item.source_url}}" data-ng-bind="item.title"></a><p data-ng-bind="item.source_title"></p></div><div class="post-info" ng-bind-html="item.description"></div>'
             };
-            footer = '<div class="meta"><a href="" class="notes">{{::item.note_count}}</a><a href="{{::item.post_url}}#comments" class="comments">Сomments</a><div>{{::item.timestamp*1000|date:"dd MMM yyyy"}}</div></div>';
+            footer = '<div class="meta"><a href="" class="notes">{{::item.note_count}}</a><a href="{{::item.post_url}}#comments" class="comments">Сomments</a><div>{{::item.timestamp|date:"dd MMM yyyy"}}@{{::item.blog_name}}<img data-ng-src="{{::item.avatar}}"></div></div>';
             for (var index in templates) {
                 $templateCache.put(index, templates[index] + footer);
             }

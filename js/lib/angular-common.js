@@ -396,10 +396,6 @@
                         .css('left', $elem.css('left').replace('px', '') + 'px')
                         .css(anchor, (offset + elementsOffsetFromTop(scrollbar)) + 'px')
                         .css('margin-top', 0);
-
-                    if (anchor === 'bottom') {
-                        $elem.css('margin-bottom', 0);
-                    }
                 }
 
                 /**
