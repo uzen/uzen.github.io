@@ -3,7 +3,7 @@
 
     angular.module('loader', [])
         .constant('API_KEY', 'fuiKNFp9vQFvjLNvx4sUwti4Yb5yGutBN4Xh10LXZhhRKjWlV4')
-        .directive('contentItem', function($window, tumblrService) {
+        .directive('contentItem', function($window, TemplateRequestProvider) {
             return {
                 require: '^scroller',
                 restrict: 'E',
@@ -21,7 +21,7 @@
                 win = angular.element($window);
                 customCols = $attrs.cols != null;
                 
-                $scope.tumblr = tumblrService;
+                $scope.tumblr = TemplateRequestProvider;
 
                 $scope.tumblr.setting({
                     user: $scope.user,
@@ -114,10 +114,10 @@
             }
 
             function tempFn() {
-                return '<div data-ng-repeat="column in tumblr.items" style="width:{{tumblr.config.cols[1]}}px"><article data-ng-repeat="item in column track by $index"><div class="item-num" data-ng-include="item.type"><div></article></div>';
+                return '<div data-ng-repeat="column in tumblr.items" style="width:{{tumblr.config.cols[1]}}px" class="columns"><article data-ng-repeat="item in column track by $index" class="item-num" data-ng-include="item.type"></article></div>';
             }
         })
-        .service('tumblrService', function($http, API_KEY, DataService) {
+        .service('TemplateRequestProvider', function($http, API_KEY, DataService) {
             this.config = null;
             this.items = [];
             this.busy = false;
@@ -178,7 +178,7 @@
                         }
                     }
                 }
-                
+                url = "../../db/data.json";
                 $http.jsonp(url, params).success(function(data, status) {
                     if (data.response.posts == null) {
                         return;
@@ -249,12 +249,20 @@
                     return callback;
                 },
                 convertMeta: function (data) {
-                    data.timestamp = data.timestamp * 1000;
-                    if(data.link_url != null) {
-                    		data.blog_name = data.source_title;
+                    if(data.reblog != null) {
+                    		data.source_title = data.blog_name;
                     }
                     
-                    data.avatar = '//api.tumblr.com/v2/blog/' + data.blog_name + '.tumblr.com/avatar/64';
+                    var tags = '', i=0, lenTags = data.tags.length;
+                    
+                    while (i < lenTags) {
+                        tags += '<a href="/' + data.tags[i] + '">' + data.tags[i] + '</a>';
+                        i++;
+                    } 
+                    
+                    data.tags = $sce.trustAsHtml(tags);
+                    
+                    data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
                 },
                 dataHtml: function(data, obj) {
                     return $sce.trustAsHtml(data[obj]);
@@ -288,9 +296,11 @@
                 },
                 videoCallback: function(data) {
                     data.player = tumblrAPI.dataHtml(data.player[1], "embed_code");
+                    data.caption = tumblrAPI.dataHtml(data, "caption");
                 },
                 audioCallback: function(data) {
                     data.player = tumblrAPI.dataHtml(data, "player");
+                    data.caption = tumblrAPI.dataHtml(data, "caption");
                 },
                 linkCallback: function(data) {
                     data.description = tumblrAPI.dataHtml(data, "description");
