@@ -142,8 +142,8 @@
                 var originalOffset;
 
                 // Optional Classes
-                var stickyClass = $attrs.stickyClass || '';
-                var unstickyClass = $attrs.unstickyClass || '';
+                var sclass = $attrs.sClass || '';
+                var unsclass = $attrs.unsClass || '';
                 var bodyClass = $attrs.bodyClass || '';
                 var bottomClass = $attrs.bottomClass || '';
 
@@ -338,8 +338,8 @@
                     isSticking = false;
 
                     $body.removeClass(bodyClass);
-                    $elem.removeClass(stickyClass);
-                    $elem.addClass(unstickyClass);
+                    $elem.removeClass(sclass);
+                    $elem.addClass(unsclass);
 
                     if (fromDirection === 'top') {
                         $elem.removeClass(bottomClass);
@@ -384,22 +384,18 @@
                         initialCSS.offsetWidth = $elem[0].offsetWidth;
                     }, 0);
                     $body.addClass(bodyClass);
-                    $elem.removeClass(unstickyClass);
+                    $elem.removeClass(unsclass);
                     $elem.removeClass(bottomClass);
-                    $elem.addClass(stickyClass);
+                    $elem.addClass(sclass);
 
                     createPlaceholder();
 
                     $elem
-                        .css('position', 'fixed')
                         .css('width', $elem[0].offsetWidth + 'px')
+                        .css('position', 'fixed')
                         .css('left', $elem.css('left').replace('px', '') + 'px')
                         .css(anchor, (offset + elementsOffsetFromTop(scrollbar)) + 'px')
                         .css('margin-top', 0);
-
-                    if (anchor === 'bottom') {
-                        $elem.css('margin-bottom', 0);
-                    }
                 }
 
                 /**

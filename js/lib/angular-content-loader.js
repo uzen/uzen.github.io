@@ -1,21 +1,9 @@
 (function() {
     'use strict';
 
-    var app = angular.module('loader', [])
+    angular.module('loader', [])
         .constant('API_KEY', 'fuiKNFp9vQFvjLNvx4sUwti4Yb5yGutBN4Xh10LXZhhRKjWlV4')
-        .run(function($templateCache) {
-            var templates = {
-                text: '<div class="post-info" ng-bind-html="item.body"></div>',
-                photo: '<a href="{{::item.image_permalink}}"><img data-ng-src="{{::item.photos.alt.url}}" src="" class="previmg" alt=""></a><div class="post-info" ng-bind-html="item.caption"></div>',
-                video: '<div class="post-info" ng-bind-html="item.player"></div>',
-                music: '<div>Music</div>',
-                link: '<div class="link-text"><a href="{{::item.source_url}}" data-ng-bind="item.title"></a><p data-ng-bind="item.source_title"></p></div><div class="post-info" ng-bind-html="item.description"></div>'
-            };
-            for (var index in templates) {
-                $templateCache.put(index, templates[index]);
-            }
-        })
-        .directive('contentItem', function($window, tumblrService) {
+        .directive('contentItem', function($window, TemplateRequestProvider) {
             return {
                 require: '^scroller',
                 restrict: 'E',
@@ -33,7 +21,7 @@
                 win = angular.element($window);
                 customCols = $attrs.cols != null;
                 
-                $scope.tumblr = tumblrService;
+                $scope.tumblr = TemplateRequestProvider;
 
                 $scope.tumblr.setting({
                     user: $scope.user,
@@ -73,17 +61,25 @@
                 }
 
                 function getCols(elem) {
-                    var elemWidth, num500, num380;
+                    var elemWidth, num = [500, 400, 250], index = 0, min, cue;
                     elemWidth = getWH(elem, "width", false);
-                    num500 = elemWidth / 500;
-                    num380 = elemWidth / 380;
 
-                    if (customCols) {
-                        num380 = parseInt($attrs.cols);
-                    } else if (num500 - Math.floor(num500) < 0.4) {
-                        return [Math.floor(num500), 500];
+                    min = num[index];                    
+                    for (var key in num) {
+                    		cue = elemWidth % num[key];
+                    		if (min > cue) {
+                    			min = cue;
+                    			index = key;
+                    		}
                     }
-                    return [Math.floor(num380), 380];
+                    
+                    if (customCols) {
+                        cue = parseInt($attrs.cols);
+                    } else {
+                    		cue = Math.floor(elemWidth / num[index]);
+                        return [cue, Math.floor(elemWidth / cue)];
+                    }
+                    return [cue, Math.floor(elemWidth / cue)];
                 };
 
                 function getWH(d, g, k) {
@@ -118,10 +114,10 @@
             }
 
             function tempFn() {
-                return '<div data-ng-repeat="column in tumblr.items" style="width:{{tumblr.config.cols[1]}}px"><article data-ng-repeat="item in column track by $index"><div class="item-num"><div data-ng-include="item.type"></div><div class="meta"><a href="" class="notes">{{::item.note_count}}</a><a href="{{::item.post_url}}#comments" class="comments">Сomments</a></div></div></article></div>';
+                return '<div data-ng-repeat="column in tumblr.items" style="width:{{tumblr.config.cols[1]}}px" class="columns"><article data-ng-repeat="item in column track by $index" class="item-num" data-ng-include="item.type"></article></div>';
             }
         })
-        .service('tumblrService', function($http, API_KEY, DataService) {
+        .service('TemplateRequestProvider', function($http, API_KEY, DataService) {
             this.config = null;
             this.items = [];
             this.busy = false;
@@ -171,7 +167,7 @@
                 this.busy = true;
                 
                 if (url == null) {
-                    url = 'http://api.tumblr.com/v2/blog/' + this.config.user + '.tumblr.com/posts';
+                    url = '//api.tumblr.com/v2/blog/' + this.config.user + '.tumblr.com/posts';
                     params = {
                         params: {
                             api_key: API_KEY,
@@ -182,7 +178,7 @@
                         }
                     }
                 }
-
+                
                 $http.jsonp(url, params).success(function(data, status) {
                     if (data.response.posts == null) {
                         return;
@@ -222,6 +218,8 @@
                 postSize: null,
                 process: function(data) {
                     tumblrAPI.getData(data.type)(data);
+                    tumblrAPI.convertMeta(data);
+                    
                     return data;
                 },
                 container: function (size) {
@@ -241,11 +239,30 @@
                         case "video":
                             callback = tumblrAPI.videoCallback;
                             break;
+                        case "audio":
+                            callback = tumblrAPI.audioCallback;
+                            break;                     
                         case "link":
                             callback = tumblrAPI.linkCallback;
                             break;
                     }
                     return callback;
+                },
+                convertMeta: function (data) {
+                    if(data.reblog != null) {
+                    		data.source_title = data.blog_name;
+                    }
+                    
+                    var tags = '', i=0, lenTags = data.tags.length;
+                    
+                    while (i < lenTags) {
+                        tags += '<a href="/' + data.tags[i] + '">' + data.tags[i] + '</a>';
+                        i++;
+                    } 
+                    
+                    data.tags = $sce.trustAsHtml(tags);
+                    
+                    data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
                 },
                 dataHtml: function(data, obj) {
                     return $sce.trustAsHtml(data[obj]);
@@ -279,6 +296,11 @@
                 },
                 videoCallback: function(data) {
                     data.player = tumblrAPI.dataHtml(data.player[1], "embed_code");
+                    data.caption = tumblrAPI.dataHtml(data, "caption");
+                },
+                audioCallback: function(data) {
+                    data.player = tumblrAPI.dataHtml(data, "player");
+                    data.caption = tumblrAPI.dataHtml(data, "caption");
                 },
                 linkCallback: function(data) {
                     data.description = tumblrAPI.dataHtml(data, "description");

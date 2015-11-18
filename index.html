@@ -1,70 +1,88 @@
 <!DOCTYPE html>
-<html ng-app="app.tumblr">
+<html lang="en-US">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="viewport" content="width=device-width">
+<meta charset="utf-8">
+<title>Angular infinite scroll</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="index, follow">
 <link rel="stylesheet" href="./stylesheets/style.css">
-<link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,300' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,300italic,600' rel='stylesheet' type='text/css'>
 <script src="./js/lib/angular.min.js"></script>
 <script src="./js/lib/angular-content-loader.js"></script>
 <script src="./js/lib/angular-common.js"></script>
 <script src="./js/app.js"></script>
+<!-- common social tags -->
 </head>
-<body>
-<div id="page" ng-controller="isController">
-<header class="home" sticky>
-	<div id="navbarlogo">
-		<h1><a href="/" title="Return to the main page">{Title}</a></h1>
+<body ng-app="tmblrApp" ng-controller="TumblrController">
+<header id="main-header" class="clear" s-class="sticky" sticky>
+	<div class="header-inner center">
+	<div class="header-left">
+		<a href="/" class="logo he-xt">{Title}</a>
+		<div class="main-nav">
+			<ul class="menu-nav">
+				<li><a href="#home" ng-click="eff()">Home</a></li>
+				<li><a href="/archive">Archive</a></li>
+			</ul>
+		</div>
 	</div>
-	<div class="searchbar">
-	<form class="form-control" action="/search" method="get">
-		<div class="sfsbc"><button value="Search" aria-label="Search" type="submit"> <i class="icon-search"></i> </button></div>
-		<div class="tsfi"><input type="text" name="q" placeholder="search..." autocomplete="on" /></div>
-	</form>
+	<div class="header-middle">
+		<div class="headerSearch" role="search">
+				<form action="/search" method="get" class="main-search">				
+					<input type="search" name="q" placeholder="Search..." value="" autocomplete="on">
+					<button value="Search" type="submit" class="he-xt">Search</button>
+				</form>
+		</div>
 	</div>
-	<div class="rbarmenu">	
-		<nav class="navbarmenu">
-		   <a href="#" ng-click="eff()">Home</a>
-		   <a href="#" ng-click="eff('photo')">Pictures</a>
-		   <a href="#" ng-click="eff('audio')">Music</a>
-		   <a href="#" ng-click="eff('video')">Videos</a>
-		   <a href="#" ng-click="eff('link')">Links</a>
-		   <a href="#" class="nav-follow btn-push">Grafire</a>
-		</nav>
+	<div class="header-right clear">
+	<nav class="main-nav" role="navigation">
+		<ul class="menu-nav">
+		   <li><a href="#photos" ng-click="eff('photo')">Pictures</a></li>
+		   <li><a href="#music" ng-click="eff('audio')">Music</a></li>
+		   <li><a href="#videos" ng-click="eff('video')">Videos</a></li>
+		   <li><a href="#links" ng-click="eff('link')">Links</a></li>
+		   <li><em><a href="#" class="btn-push">Grafire</a></em></li>
+		</ul>
+	</nav>
+	</div>
 	</div>
 </header>
-<div id="main" class="wrapper">
+<main id="content">
 <div id="primary" scroller>
-	<div id="content" role="main">
-		<div class="panel"></div>
-		<content-item class="page-element" format="format" user="user"></content-item>
+	<div class="main-content" role="main">
+		<div class="panel"><ul class="page-buttons"><li></li></ul></div>
+		<content-item class="page-element center" format="format" user="user"></content-item>
 	</div>
 	<!-- #content -->
 </div>
 <!-- #primary -->
-<div id="secondary" class="widget-area" role="complementary">
-	<div class="panel"> 
-<h1 class="dropdown">
-		<a href="#" class="dropdown-toggle" data-toggle="dropdown">Angular infinite scroll</a>
-		<ul class="dropdown-menu">
-                    <li><a href="#" ng-click="euf('grafire')"><h5>Grafire</h5></a></li>
-                    <li><a href="#" ng-click="euf('staff')"><h5>Tumblr Staff</h5></a></li>
-      </ul>
-</h1>
-	</div>
+<div class="widget-area" role="complementary">
 	<aside id="menu" class="widget">	
+	<div class="panel dropdown">
+		<h1><a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user}}</a></h1>
+		<ul class="dropdown-menu">
+          <li><a href="#" ng-click="euf('grafire')">Grafire</a></li>
+          <li><a href="#" ng-click="euf('staff')">Tumblr Staff</a></li>
+      </ul>
+</div>
 		<div class="tf"><p>Test</p></div>
 	</aside>
 	<aside id="pop-video" class="widget">
 		<h4>Popular Videos</h4>
 		<a href="" title="name"><img src="" class="previmg" height="190px"></a>
+		<div class="tf"><h3>Example H3 Title</h3></div>
+	</aside>
+	
+	<aside id="pop-music" class="widget">
+		<h4 color="black">Popular Music</h4>
 		<div class="tf"><p>text</p></div>
 	</aside>
 </div>
 <!-- #secondary -->
-</div>
+</main>
 <div id="banner1"></div>
-<footer id="colophon" role="contentinfo">
+<!-- Footer -->
+<footer>
 <div class="fixable-wrapper">
 <div class="ft-column1 waypoint">
 <a href="http://github.com/uzen/"><em>Get it theme</em></a>
@@ -84,7 +102,7 @@
 		<a target="_blank" href="/" class="tw"></a>
 		<a target="_blank" href="/rss" class="rss"></a>
 	</div>
-	<a rel="nofollow" href="#" onclick="window.scrollTo(0,0);return !1;">Scroll UP</a>
+	<a rel="nofollow" href="#" onclick="window.scrollTo(0,0);return !1;" class="btn-push light">Scroll UP</a>
 </div>
 <div class="ft-main">
 <p class="ft-meta">© 2015 Angular infinite scroll.</p>
@@ -92,7 +110,5 @@
 </div>
 </div>
 </footer>
-</div>
-
 </body>
 </html>
