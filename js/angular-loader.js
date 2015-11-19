@@ -29,7 +29,15 @@
                     
                     $scope.$watch($attrs.columnHeader, render);
                     
-                    angular.element(window).bind('resize', initialize);
+                    angular.element(window).bind('resize', function () {
+                    		var tmp = [];
+                    		tmp = $scope.columns;
+                    		$scope.columns = [];                    		
+                    		initialize();
+                    		tmp.forEach(function onIteration(array) {
+                    			render(array);
+                    		});
+                    });
                     
                     function initialize() {
                     		cols = getColumns($element[0], $attrs.cols);
@@ -49,13 +57,12 @@
                     		return elementString;
                     }	
                     
-                    function render(item) {
-                        angular.forEach(item, function onIteration(item, index) {
+                    function render(items) {
+                        items.forEach(function onIteration(item, index) {
                             var column = (index % cols.length) | 0;
                             if (!$scope.columns[column]) {
                                $scope.columns[column] = [];
                             }
-                            
                             $scope.columns[column].push(item);
                         });
                     }
@@ -125,13 +132,12 @@
                     return data;
                 },
                 meta: function(data) {
-                    if (data.reblog == null) {
+                	 var tags = '', i = 0,
+                        lenTags = data.tags.length;
+                	
+                    if (data.source_title === undefined) {
                         data.source_title = data.blog_name;
                     }
-
-                    var tags = '',
-                        i = 0,
-                        lenTags = data.tags.length;
 
                     while (i < lenTags) {
                         tags += '<a href="/' + data.tags[i] + '">' + data.tags[i] + '</a>';
@@ -139,8 +145,14 @@
                     }
 
                     data.tags = $sce.trustAsHtml(tags);
+                    
+                    if (data.source_title.indexOf('.') != -1) {
+                   		data.avatar = '//placeimg.com/40/40/' + data.source_title;
+                    } else {
+                    		data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
+                    }
 
-                    data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
+                    
                 },
                 text: function(data) {
                     data.body = $sce.trustAsHtml(data['body']);

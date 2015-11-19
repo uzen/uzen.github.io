@@ -1,24 +1,7 @@
 (function() {
     'use strict';
     
-    angular.module('tmblrApp', ['loader', 'common'])
-    .run(function($templateCache) {
-        		var templates, header, footer;
-            templates = {
-                text: '<div class="cover-caption" ng-bind-html="::item.body"></div>',
-                photo: '<a href="{{::item.image_permalink}}"><img src="{{::item.photos.alt.url}}" class="previmg" alt=""></a><div class="cover-caption" ng-bind-html="::item.caption"></div>',
-                video: '<div ng-bind-html="::item.player"></div><div class="cover-caption" ng-bind-html="::item.caption"></div>',
-                music: '<div ng-bind-html="::item.player"></div><div class="cover-caption" ng-bind-html="::item.caption"></div>',
-                link: '<div class="link-text"><a href="{{::item.source_url}}" ng-bind="::item.title"></a><p ng-bind="::item.source_title"></p></div><div ng-bind-html="::item.description"></div>'
-            };
-
-            header = '<header class="cover-user-wrap"><div class="avt"><img src="{{::item.avatar}}" alt=""></div><div class="iu"><h3 class="hu">@{{::item.source_title}}</h3><span class="dt">{{::item.timestamp*1000|date:"dd MMM yyyy"}}</span></div></header>';      
-            footer = '<div class="cover-fields" ng-bind-html="::item.tags"></div><div class="cover-stat-wrap"><span class="cover-stat stat-notes" ng-bind="::item.note_count"></span> Notes<span onclick="window.open("{{::item.post_url}}#comments"); return false;" class="cover-stat stat-reblog">Reblog</span><span onclick="window.open("{{::item.post_url}}#comments"); return false;" class="cover-stat stat-comments">Commens</span></div>';
-            
-            for (var index in templates) {
-                $templateCache.put(index, header + templates[index] + footer);
-            }
-    })
+    angular.module('mainApp', ['loader', 'common'])
     .config(function($dataRequestProvider) {
             $dataRequestProvider.httpOptions({
             	params: {
@@ -40,11 +23,18 @@
         $scope.content = [];
         $scope.buffer = false;
         
-        $scope.columnChanged = function(type) {
-        		$scope.blog.options.type = type;
+        $scope.navLink = function(arr) {
+        		if (arr.type != null) {
+        			$scope.blog.options.type = arr.type;        			
+        		} 
+        		
+        		if (arr.user != null) {
+        			$scope.blog.user = arr.user;        		
+        		}
+        		
         		$scope.blog.options.offset = 0;
         		
-            $rootScope.$emit("changeColumns", type);
+            $rootScope.$emit("changeColumns");
             $scope.nextPage($scope.blog.user);
         };
         
@@ -57,9 +47,9 @@
              $scope.buffer = true;
 	
              var url = '//api.tumblr.com/v2/blog/' + user + '.tumblr.com/posts';
-             
+
              $dataRequest(url, $scope.blog.options).then(function(data) {
-                if (data.response.posts != null) {  
+                if (data.response.posts === undefined) {  
                 	$scope.content = jsonFormatter(data.response.posts);
                 	$scope.blog.options.offset += $scope.blog.options.limit;
                 	
@@ -84,5 +74,5 @@
 				}
 				return data;
         };       
-    }])
+    }]);
 }());
