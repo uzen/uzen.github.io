@@ -45,6 +45,7 @@
                     if (data.response.posts === undefined) {
                         return;
                     }
+                    
                     $scope.content = jsonFormatter(data.response.posts);
                     $scope.blog.options.offset += $scope.blog.options.limit;
 
