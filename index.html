@@ -8,7 +8,7 @@
 <meta name="robots" content="index, follow">
 <link rel="stylesheet" href="./stylesheets/style.css">
 <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,300italic,600' rel='stylesheet' type='text/css'>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.4.3/angular.min.js"></script>
+<script src="./js/lib/angular.min.js"></script>
 <script src="./js/angular-loader.js"></script>
 <script src="./js/lib/angular-common.js"></script>
 <script src="./js/app.js"></script>
@@ -82,23 +82,37 @@
 <div id="banner1"></div>
 <script type="text/javascript" >
     angular.module('tmblrApp', ['mainApp'])
-    .run(function($templateCache) {
-        		var templates, header, footer;
+        .value('$tmblrConfig', {
+            user: 'esc001' || getName(location.hostname), // short name used to uniquely identify a blog
+            options: {
+                type: null, // (null = all), text, photo, audio, video, links
+                limit: 10, // number of results to return: 1–20, inclusive
+                offset: 0 // post number to start at [0 (first post)]
+            }
+        })
+        .run(function($templateCache) {
+            var templates, header, footer;
             templates = {
                 text: '<div class="cover-caption" ng-bind-html="::item.body"></div>',
-                photo: '<a href="{{::item.image_permalink}}"><img src="{{::item.photos.alt.url}}" class="previmg" alt=""></a><div class="cover-caption" ng-bind-html="::item.caption"></div>',
+                photo: '<a href="{{::item.short_url}}"><img src="{{::item.photos.alt.url}}" class="previmg" alt=""></a><div class="cover-caption" ng-bind-html="::item.caption"></div>',
                 video: '<div ng-bind-html="::item.player"></div><div class="cover-caption" ng-bind-html="::item.caption"></div>',
                 music: '<div ng-bind-html="::item.player"></div><div class="cover-caption" ng-bind-html="::item.caption"></div>',
-                link: '<div class="link-text"><a href="{{::item.source_url}}" ng-bind="::item.title"></a><p ng-bind="::item.source_title"></p></div><div ng-bind-html="::item.description"></div>'
+                link: '<div class="link-text"><a href="{{::item.source_url}}" ng-bind="::item.title"></a><p ng-bind="::item.source_title"></p></div><div class="cover-caption" ng-bind-html="::item.description"></div>'
             };
 
-            header = '<header class="cover-user-wrap"><div class="avt"><img src="{{::item.avatar}}" alt=""></div><div class="iu"><h3 class="hu">@{{::item.source_title}}</h3><span class="dt">{{::item.timestamp*1000|date:"dd MMM yyyy"}}</span></div></header>';      
+            header = '<header class="cover-user-wrap"><div class="vt"><img src="{{::item.avatar}}" alt=""></div><div class="iu"><h3 class="hu">@{{::item.source_title}}</h3><div class="dt">{{::item.timestamp*1000|date:"dd MMM yyyy"}}</div></div></header>';
             footer = '<div class="cover-fields" ng-bind-html="::item.tags"></div><div class="cover-stat-wrap"><span class="cover-stat stat-notes" ng-bind="::item.note_count"></span> Notes<span onclick="window.open("{{::item.post_url}}#comments"); return false;" class="cover-stat stat-reblog">Reblog</span><span onclick="window.open("{{::item.post_url}}#comments"); return false;" class="cover-stat stat-comments">Commens</span></div>';
-            
+
             for (var index in templates) {
                 $templateCache.put(index, header + templates[index] + footer);
             }
-    });
+        });
+    var getName = function(ln) {
+        if (ln.indexOf('www.') != -1) {
+            return ln.substr(4, ln.indexOf('.', 4));
+        }
+        return ln.substr(0, ln.indexOf('.'));
+    }  
 </script>
 <!-- Footer -->
 <footer>

@@ -1,7 +1,7 @@
 (function() {
     'use strict';
     angular.module('loader', [])
-        .directive('columnHeader', ['$rootScope', '$compile', function($rootScope, $compile) {
+        .directive('columnHeader', function($rootScope, $compile, $window) {
             return {
                 restrict: 'A',
                 link: function($scope, $element, $attrs) {
@@ -9,64 +9,113 @@
                     if (!$scope[$attrs.columnHeader]) {
                         throw new Error("Can't find the column configuration object on the scope: " + $attrs.columnHeader);
                     }
-                    
-                    var cols, pfx;
-                    
+
+                    var cols, pfx, windowElement, styleSheet;
+
+                    windowElement = angular.element($window);
+
                     $scope.columns = [];
-                    
+
                     if (!$attrs.prefix) {
-                    		pfx = 'item';		
+                        pfx = 'item';
                     } else {
-                    		pfx = $attrs.prefix;                   
+                        pfx = $attrs.prefix;
                     }
-                    
-                    $rootScope.$on("changeColumns", function () { 
-                    		$scope.columns = []; 
-                    		initialize();
+
+                    $rootScope.$on("changeColumns", function() {
+                        $scope.columns = [];
+                        initialize();
                     });
-                    
+
                     initialize();
-                    
+
                     $scope.$watch($attrs.columnHeader, render);
-                    
-                    angular.element(window).bind('resize', function () {
-                    		var tmp = [];
-                    		tmp = $scope.columns;
-                    		$scope.columns = [];                    		
-                    		initialize();
-                    		tmp.forEach(function onIteration(array) {
-                    			render(array);
-                    		});
-                    });
-                    
-                    function initialize() {
-                    		cols = getColumns($element[0], $attrs.cols);
-                    		$element.append($compile(createColumns($element, cols, pfx))($scope));
+                    $scope.$on('$destroy', onDestroy);
+                    windowElement.on('resize', onResize);
+
+                    function onResize() {
+                        if (cols.width == getColumns($element[0], $attrs.cols).width) {
+                            return;
+                        }
+                        var tmp = [];
+                        tmp = $scope.columns;
+                        $scope.columns = [];
+                        initialize();
+                        tmp.forEach(function onIteration(array) {
+                            render(array);
+                        });
                     }
-                    
-                    function createColumns(element, cols, _p) {
-                    		if (element.children()) {
-									element.children().remove();
-								}
-                    		var elementString = '', i;
-                    		
-                    		for (i = 0; i < cols.length; i++) {
-                    			elementString += '<div class="columns" style="width:'+ cols.width +'px"><article ng-repeat="'+ _p +' in columns['+ i +'] track by $index" class="ng-include:'+ _p +'.type; item-num"></article></div>';
-                    		}
-                    		                 
-                    		return elementString;
-                    }	
-                    
+
+                    function onDestroy() {
+                        windowElement.off('resize', onResize);
+                    }
+
+                    function initialize() {
+                        var rules, selector;
+
+                        if ($element.children()) {
+                            $element.children().remove();
+                        }
+
+                        cols = getColumns($element[0], $attrs.cols);
+                        rules = [
+                            ['width', cols.width + 'px']
+                        ];
+                        selector = addStylesheetRules(rules);
+                        
+                        $element.append($compile(createColumns(selector, pfx))($scope));
+                    }
+
+                    function createColumns(rules, _p) {
+                        var elementString = '',
+                            i;
+
+                        for (i = 0; i < cols.length; i++) {
+                            elementString += '<div class="columns ' + rules + '"><article ng-repeat="' + _p + ' in columns[' + i + '] track by $index" class="ng-include:' + _p + '.type; item-num"></article></div>';
+                        }
+
+                        return elementString;
+                    }
+
+                    function addStylesheetRules(rules) {
+
+                        if (styleSheet == null) {
+                            var styleEl = document.createElement('style')
+                            $element.parent().append(styleEl);
+
+                            // Grab style sheet
+                            styleSheet = styleEl.sheet;
+                        }
+
+                        var selector, propStr = '';
+
+                        selector = 'c' + Math.random().toString(36).slice(2, 6);
+
+                        for (var i = 0, pl = rules.length; i < pl; i++) {
+                            var prop = rules[i];
+                            propStr += prop[0] + ':' + prop[1] + (prop[2] ? ' !important' : '') + ';\n';
+                        }
+
+                        // Insert CSS Rule    
+                        if (styleSheet.addRule != null) {
+                            styleSheet.addRule('.' + selector, propStr);
+                        } else if (styleSheet.insertRule) {
+                            styleSheet.insertRule('.' + selector + '{' + propStr + '}', styleSheet.cssRules.length);
+                        }
+                        
+                        return selector;
+                    }
+
                     function render(items) {
                         items.forEach(function onIteration(item, index) {
                             var column = (index % cols.length) | 0;
                             if (!$scope.columns[column]) {
-                               $scope.columns[column] = [];
+                                $scope.columns[column] = [];
                             }
                             $scope.columns[column].push(item);
                         });
                     }
-                    
+
                     function getColumns(elem, count) {
                         var elemWidth, num = [500, 400, 250],
                             index = 0,
@@ -121,7 +170,7 @@
                     }
                 }
             };
-        }])
+        })
         .factory('$tmblrService', function($sce) {
 
             var tumblrAPI = {
@@ -132,9 +181,10 @@
                     return data;
                 },
                 meta: function(data) {
-                	 var tags = '', i = 0,
+                    var tags = '',
+                        i = 0,
                         lenTags = data.tags.length;
-                	
+
                     if (data.source_title === undefined) {
                         data.source_title = data.blog_name;
                     }
@@ -145,14 +195,14 @@
                     }
 
                     data.tags = $sce.trustAsHtml(tags);
-                    
+
                     if (data.source_title.indexOf('.') != -1) {
-                   		data.avatar = '//placeimg.com/40/40/' + data.source_title;
+                        data.avatar = '//placeimg.com/40/40/' + data.source_title;
                     } else {
-                    		data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
+                        data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
                     }
 
-                    
+
                 },
                 text: function(data) {
                     data.body = $sce.trustAsHtml(data['body']);
@@ -215,14 +265,14 @@
 
                 function handleRequestFn(url, userOptions, debug) {
                     handleRequestFn.totalPendingRequests++;
-      
+
                     if (userOptions != null) {
-                    		var options = new Object();
+                        var options = new Object();
                         angular.extend(options.params = {}, userOptions, httpOptions.params);
                     } else {
                         var options = httpOptions;
                     }
-                    
+
                     return $http.jsonp(url, options)['finally'](function() {
                             handleRequestFn.totalPendingRequests--;
                         })
