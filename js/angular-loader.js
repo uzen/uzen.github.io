@@ -191,9 +191,13 @@
                     }
                     var handleLoadElements = function(item) {
                         return render(item, $scope.columns);
+                    }, 
+                    handleReloadRows = function() {
+                        $scope.columns = [];
+                        reloadRows();
                     }
                     $scope.$watch($attrs.columnHeader, handleLoadElements);
-                    $rootScope.$on("changeColumns", reloadRows);
+                    $rootScope.$on("changeColumns", handleReloadRows);
                     windowElement.on('resize', onResize);
                 }
             };
