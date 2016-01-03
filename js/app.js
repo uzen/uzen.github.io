@@ -40,7 +40,7 @@
                 $scope.buffer = true;
 
                 var url = '//api.tumblr.com/v2/blog/' + user + '.tumblr.com/posts';
-                url = "../db/data.json";
+                //url = "../db/data.json";
                 $dataRequest(url, $scope.blog.options).then(function(data) {
                     if (data.response.posts === undefined) {
                         return;
