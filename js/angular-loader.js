@@ -6,113 +6,132 @@
                 restrict: 'A',
                 link: function($scope, $element, $attrs) {
 
-                    if (!$scope[$attrs.columnHeader]) {
-                        throw new Error("Can't find the column configuration object on the scope: " + $attrs.columnHeader);
-                    }
-
-                    var cols, pfx, windowElement, styleSheet;
+                    var cols, windowElement, styleSheet;
 
                     windowElement = angular.element($window);
 
-                    $scope.columns = [];
-
-                    if (!$attrs.prefix) {
-                        pfx = 'item';
+                    if ($attrs.columnHeader != undefined && $scope[$attrs.columnHeader] != undefined) {
+                        init();
                     } else {
-                        pfx = $attrs.prefix;
+                        throw Error("columnHeader hasn't been initialized");
                     }
 
-                    $rootScope.$on("changeColumns", function() {
+                    function init() {
                         $scope.columns = [];
-                        initialize();
-                    });
+                        cols = getColumns($element[0], $attrs.cols);
 
-                    initialize();
-
-                    $scope.$watch($attrs.columnHeader, render);
-                    $scope.$on('$destroy', onDestroy);
-                    windowElement.on('resize', onResize);
-
-                    function onResize() {
-                        if (cols.width == getColumns($element[0], $attrs.cols).width) {
-                            return;
-                        }
-                        var tmp = [];
-                        tmp = $scope.columns;
-                        $scope.columns = [];
-                        initialize();
-                        tmp.forEach(function onIteration(array) {
-                            render(array);
-                        });
+                        reloadRows();
                     }
 
-                    function onDestroy() {
-                        windowElement.off('resize', onResize);
-                    }
-
-                    function initialize() {
+                    function reloadRows() {
                         var rules, selector;
 
                         if ($element.children()) {
                             $element.children().remove();
                         }
 
-                        cols = getColumns($element[0], $attrs.cols);
                         rules = [
                             ['width', cols.width + 'px']
                         ];
-                        selector = addStylesheetRules(rules);
-                        
-                        $element.append($compile(createColumns(selector, pfx))($scope));
+
+                        selector = addStyleSheet(rules, true);
+
+                        $element.append($compile(createColumns(selector, $attrs.prefix))($scope));
+                    };
+
+                    function onResize() {
+                        var _cols = cols;
+                        cols = getColumns($element[0], $attrs.cols);
+
+                        if (cols.length == _cols.length) {
+                        	
+                            var rules = [
+                                ['width', cols.width + 'px']
+                            ];
+
+                            addStyleSheet(rules, false);
+                        } else if (cols.width != _cols.width) {
+                            var tmp = [];
+
+                            for (var i = 0; i < _cols.length; i++)
+                                render($scope.columns[i], tmp);
+
+                            $scope.columns = tmp;
+
+                            if ($scope.$$phase && $rootScope.$$phase) {
+                                return reloadRows();
+                            }
+                            $scope.$apply(reloadRows);
+                        }
                     }
 
-                    function createColumns(rules, _p) {
-                        var elementString = '',
-                            i;
+                    function createColumns(rules, _prefix) {
+                        var elementString = '', i;
+
+                        _prefix = _prefix || 'item';
 
                         for (i = 0; i < cols.length; i++) {
-                            elementString += '<div class="columns ' + rules + '"><article ng-repeat="' + _p + ' in columns[' + i + '] track by $index" class="ng-include:' + _p + '.type; item-num"></article></div>';
+                            elementString += '<div class="columns ' + rules + '"><article ng-repeat="' + _prefix + ' in columns[' + i + '] track by $index" class="ng-include:' + _prefix + '.type; item-num"></article></div>';
                         }
 
                         return elementString;
                     }
 
-                    function addStylesheetRules(rules) {
+                    function addStyleSheet(rules, ns) {
 
-                        if (styleSheet == null) {
-                            var styleEl = document.createElement('style')
-                            $element.parent().append(styleEl);
+                        if (styleSheet == undefined) {
+                            styleSheet = document.createElement('style');
 
-                            // Grab style sheet
-                            styleSheet = styleEl.sheet;
+                            document.getElementsByTagName('head')[0].appendChild(styleSheet);
+                            styleSheet = document.styleSheets[document.styleSheets.length - 1];
+
+                            if (typeof styleSheet.cssRules == 'undefined' && typeof styleSheet.rules != 'undefined')
+                                styleSheet.cssRules = styleSheet.rules;
+                            if (typeof styleSheet.insertRule == 'undefined' && typeof styleSheet.addRule != 'undefined')
+                                styleSheet.insertRule = _insertRule;
+                            if (typeof styleSheet.deleteRule == 'undefined' && typeof styleSheet.removeRule != 'undefined')
+                                styleSheet.deleteRule = styleSheet.removeRule;
                         }
 
-                        var selector, propStr = '';
+                        return makeStyleSheet(styleSheet, rules, ns);
+                    }
 
-                        selector = 'c' + Math.random().toString(36).slice(2, 6);
+                    function _insertRule(rule, index) {
+                        if (rule.match(/^([^{]+)\{(.*)\}\s*$/)) {
+                            this.addRule(RegExp.$1, RegExp.$2, index);
+                            return index;
+                        }
+                    }
+
+                    function makeStyleSheet(style, rules, ns) {
+
+                        var selector, propStr = '', rlen;
+
+                        if (ns == false && (rlen = style.cssRules.length) > 0) {
+                            selector = style.cssRules[rlen - 1].selectorText;
+                            selector = selector.substr(1);
+                            style.deleteRule(rlen - 1);
+                        } else {
+                            selector = 'c' + Math.random().toString(36).slice(2, 6);
+                        }
 
                         for (var i = 0, pl = rules.length; i < pl; i++) {
-                            var prop = rules[i];
-                            propStr += prop[0] + ':' + prop[1] + (prop[2] ? ' !important' : '') + ';\n';
+                            propStr += rules[i][0] + ':' + rules[i][1] + ';';
                         }
 
-                        // Insert CSS Rule    
-                        if (styleSheet.addRule != null) {
-                            styleSheet.addRule('.' + selector, propStr);
-                        } else if (styleSheet.insertRule) {
-                            styleSheet.insertRule('.' + selector + '{' + propStr + '}', styleSheet.cssRules.length);
-                        }
-                        
+                        style.insertRule('.' + selector + '{' + propStr + '}', style.cssRules.length);
+
                         return selector;
                     }
 
-                    function render(items) {
-                        items.forEach(function onIteration(item, index) {
-                            var column = (index % cols.length) | 0;
-                            if (!$scope.columns[column]) {
-                                $scope.columns[column] = [];
+                    function render(src, dist) {
+                        angular.forEach(src, function onIteration(item, index) {
+                            var column = (index % cols.length) || 0;
+                            if (!dist[column]) {
+                                dist[column] = [];
                             }
-                            $scope.columns[column].push(item);
+                            item.$index = index;
+                            dist[column].push(item);
                         });
                     }
 
@@ -137,6 +156,8 @@
                             cue = Math.floor(elemWidth / num[index]);
                         }
 
+                        cue = Math.max(cue, 1);
+
                         return {
                             length: cue,
                             width: Math.floor(elemWidth / cue)
@@ -148,7 +169,7 @@
                             c = f ? d.offsetWidth : d.offsetHeight,
                             e = f ? "Left" : "Top",
                             b = f ? "Right" : "Bottom",
-                            f = window.getComputedStyle(d, null),
+                            f = windowElement[0].getComputedStyle(d, null),
                             l = parseFloat(f["padding" + e]) || 0,
                             n = parseFloat(f["padding" + b]) || 0,
                             p = parseFloat(f["border" + e + "Width"]) || 0,
@@ -168,6 +189,12 @@
                         }
                         return c
                     }
+                    var handleLoadElements = function(item) {
+                        return render(item, $scope.columns);
+                    }
+                    $scope.$watch($attrs.columnHeader, handleLoadElements);
+                    $rootScope.$on("changeColumns", reloadRows);
+                    windowElement.on('resize', onResize);
                 }
             };
         })
@@ -175,34 +202,27 @@
 
             var tumblrAPI = {
                 process: function(data, type, params) {
-                    tumblrAPI[type](data, params);
-                    tumblrAPI.meta(data);
+                    try {
+                        tumblrAPI[type](data, params);
+                        tumblrAPI.meta(data);
 
-                    return data;
+                        return data;
+                    } catch (e) {
+                        return;
+                    }
                 },
                 meta: function(data) {
-                    var tags = '',
-                        i = 0,
-                        lenTags = data.tags.length;
-
                     if (data.source_title === undefined) {
                         data.source_title = data.blog_name;
                     }
 
-                    while (i < lenTags) {
-                        tags += '<a href="/' + data.tags[i] + '">' + data.tags[i] + '</a>';
-                        i++;
-                    }
-
-                    data.tags = $sce.trustAsHtml(tags);
+                    data.date = data.timestamp * 1000;
 
                     if (data.source_title.indexOf('.') != -1) {
                         data.avatar = '//placeimg.com/40/40/' + data.source_title;
                     } else {
                         data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
                     }
-
-
                 },
                 text: function(data) {
                     data.body = $sce.trustAsHtml(data['body']);
@@ -242,12 +262,23 @@
                 },
                 link: function(data) {
                     data.description = $sce.trustAsHtml(data['description']);
+                },
+                quote: function() {
+                    return null;
+                },
+                answer: function() {
+                    return null;
+                },
+                chat: function() {
+                    return null;
+                },
+                ads: function() {
+                    return null;
                 }
             };
 
             return {
                 tumblr: tumblrAPI
-
             };
         })
         .provider('$dataRequest', function() {
@@ -263,25 +294,31 @@
 
             this.$get = ['$http', '$q', function($http, $q) {
 
-                function handleRequestFn(url, userOptions, debug) {
+                function handleRequestFn(url, options, callFn) {
                     handleRequestFn.totalPendingRequests++;
 
-                    if (userOptions != null) {
-                        var options = new Object();
-                        angular.extend(options.params = {}, userOptions, httpOptions.params);
+                    if (options != null) {
+                        var _options = {
+                            params: {}
+                        }
+                        angular.extend(_options.params, options, httpOptions.params);
+                        options = _options;
                     } else {
-                        var options = httpOptions;
+                        options = httpOptions;
                     }
 
                     return $http.jsonp(url, options)['finally'](function() {
                             handleRequestFn.totalPendingRequests--;
                         })
                         .then(function(response) {
-                            return response.data;
+                            if (callFn != null) {
+                                return $q.resolve(callFn(response.data));
+                            }
+                            return $q.resolve(response.data);
                         }, handleError);
 
                     function handleError(resp) {
-                        if (debug) {
+                        if (httpOptions.debug) {
                             throw Error('Failed to load JSON data: ', url, ' (HTTP status:', resp.status, resp.statusText, ')');
                         }
                         return $q.reject(resp);
@@ -298,7 +335,7 @@
             }];
 
         })
-        .directive('scroller', function($rootScope, $window, $interval) {
+        .directive('scroller', function($window, $interval) {
             return {
                 restrict: 'A',
                 scope: {
@@ -363,11 +400,7 @@
                     if (shouldScroll) {
                         checkWhenEnabled = true;
                         if (scrollEnabled) {
-                            if ($scope.$$phase || $rootScope.$$phase) {
-                                return $scope.hwnd();
-                            } else {
-                                return $scope.$apply($scope.hwnd());
-                            }
+                            return $scope.hwnd();
                         }
                     } else {
                         return checkWhenEnabled = false;
