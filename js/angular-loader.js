@@ -5,23 +5,16 @@
             return {
                 restrict: 'A',
                 link: function($scope, $element, $attrs) {
-
                     var cols, windowElement, styleSheet;
 
+                    if ($attrs.columnHeader === undefined || $scope[$attrs.columnHeader] === undefined) {
+                        console.log("columnHeader hasn't been initialized");
+                        return;
+                    }
+
                     windowElement = angular.element($window);
-
-                    if ($attrs.columnHeader != undefined && $scope[$attrs.columnHeader] != undefined) {
-                        init();
-                    } else {
-                        throw Error("columnHeader hasn't been initialized");
-                    }
-
-                    function init() {
-                        $scope.columns = [];
-                        cols = getColumns($element[0], $attrs.cols);
-
-                        reloadRows();
-                    }
+                    cols = getColumns($element[0], $attrs.cols);
+                    handleReloadRows();
 
                     function reloadRows() {
                         var rules, selector;
@@ -44,7 +37,7 @@
                         cols = getColumns($element[0], $attrs.cols);
 
                         if (cols.length == _cols.length) {
-                        	
+
                             var rules = [
                                 ['width', cols.width + 'px']
                             ];
@@ -66,7 +59,8 @@
                     }
 
                     function createColumns(rules, _prefix) {
-                        var elementString = '', i;
+                        var elementString = '',
+                            i;
 
                         _prefix = _prefix || 'item';
 
@@ -79,17 +73,17 @@
 
                     function addStyleSheet(rules, ns) {
 
-                        if (styleSheet == undefined) {
+                        if (styleSheet === undefined) {
                             styleSheet = document.createElement('style');
 
                             document.getElementsByTagName('head')[0].appendChild(styleSheet);
                             styleSheet = document.styleSheets[document.styleSheets.length - 1];
 
-                            if (typeof styleSheet.cssRules == 'undefined' && typeof styleSheet.rules != 'undefined')
+                            if (typeof styleSheet.cssRules === undefined && typeof styleSheet.rules !== undefined)
                                 styleSheet.cssRules = styleSheet.rules;
-                            if (typeof styleSheet.insertRule == 'undefined' && typeof styleSheet.addRule != 'undefined')
+                            if (typeof styleSheet.insertRule === undefined && typeof styleSheet.addRule !== undefined)
                                 styleSheet.insertRule = _insertRule;
-                            if (typeof styleSheet.deleteRule == 'undefined' && typeof styleSheet.removeRule != 'undefined')
+                            if (typeof styleSheet.deleteRule === undefined && typeof styleSheet.removeRule !== undefined)
                                 styleSheet.deleteRule = styleSheet.removeRule;
                         }
 
@@ -105,9 +99,10 @@
 
                     function makeStyleSheet(style, rules, ns) {
 
-                        var selector, propStr = '', rlen;
+                        var selector, propStr = '',
+                            rlen;
 
-                        if (ns == false && (rlen = style.cssRules.length) > 0) {
+                        if (ns === false && (rlen = style.cssRules.length) > 0) {
                             selector = style.cssRules[rlen - 1].selectorText;
                             selector = selector.substr(1);
                             style.deleteRule(rlen - 1);
@@ -151,7 +146,7 @@
                         }
 
                         if (count != null) {
-                            cue = parseInt(attrs.cols);
+                            cue = parseInt($attrs.cols);
                         } else {
                             cue = Math.floor(elemWidth / num[index]);
                         }
@@ -165,18 +160,18 @@
                     };
 
                     function getWH(d, g, k) {
-                        var f = "height" !== g,
+                        var l, n, p, q, f = "height" !== g,
                             c = f ? d.offsetWidth : d.offsetHeight,
                             e = f ? "Left" : "Top",
-                            b = f ? "Right" : "Bottom",
-                            f = windowElement[0].getComputedStyle(d, null),
-                            l = parseFloat(f["padding" + e]) || 0,
-                            n = parseFloat(f["padding" + b]) || 0,
-                            p = parseFloat(f["border" + e + "Width"]) || 0,
-                            q = parseFloat(f["border" + b + "Width"]) || 0,
-                            b = f["margin" + b],
-                            e = parseFloat(f["margin" + e]) || 0,
-                            b = parseFloat(b) || 0;
+                            b = f ? "Right" : "Bottom";
+                        f = windowElement[0].getComputedStyle(d, null);
+                        l = parseFloat(f["padding" + e]) || 0;
+                        n = parseFloat(f["padding" + b]) || 0;
+                        p = parseFloat(f["border" + e + "Width"]) || 0;
+                        q = parseFloat(f["border" + b + "Width"]) || 0;
+                        b = f["margin" + b];
+                        e = parseFloat(f["margin" + e]) || 0;
+                        b = parseFloat(b) || 0;
 
                         if (0 < c)
                             c = k ? c + (e + b) : c - (l + n + p + q);
@@ -187,12 +182,14 @@
                             c = parseFloat(c) || 0;
                             k && (c += l + n + e + b + p + q)
                         }
-                        return c
+                        return c;
                     }
-                    var handleLoadElements = function(item) {
+
+                    function handleLoadElements(item) {
                         return render(item, $scope.columns);
-                    }, 
-                    handleReloadRows = function() {
+                    }
+
+                    function handleReloadRows() {
                         $scope.columns = [];
                         reloadRows();
                     }
@@ -222,18 +219,26 @@
 
                     data.date = data.timestamp * 1000;
 
-                    if (data.source_title.indexOf('.') != -1) {
+                    if (testURL(data.source_title)) {
                         data.avatar = '//placeimg.com/40/40/' + data.source_title;
                     } else {
                         data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
                     }
+                    //url or blog name
+                    function testURL(url) {
+                    		var isUrl = url;
+                    		if (isUrl) {
+                    			isUrl = data.source_title.indexOf('.') != -1;
+                    		}
+                    		return isUrl;
+                    }
                 },
                 text: function(data) {
-                    data.body = $sce.trustAsHtml(data['body']);
+                    data.body = $sce.trustAsHtml(data.body);
                 },
                 photo: function(data, size) {
                     data.photos.alt = getImage(data.photos[0], size);
-                    data.caption = $sce.trustAsHtml(data['caption']);
+                    data.caption = $sce.trustAsHtml(data.caption);
 
                     function getImage(data, size) {
                         var alt_sizes = data.alt_sizes,
@@ -257,18 +262,19 @@
                     }
                 },
                 video: function(data) {
-                    data.player = $sce.trustAsHtml(data.player[1]['embed_code']);
-                    data.caption = $sce.trustAsHtml(data['caption']);
+                    data.player = $sce.trustAsHtml(data.player[1].embed_code);
+                    data.caption = $sce.trustAsHtml(data.caption);
                 },
                 audio: function(data) {
-                    data.player = $sce.trustAsHtml(data['player']);
-                    data.caption = $sce.trustAsHtml(data['caption']);
+                    data.player = $sce.trustAsHtml(data.player);
+                    data.caption = $sce.trustAsHtml(data.caption);
                 },
                 link: function(data) {
-                    data.description = $sce.trustAsHtml(data['description']);
+                    data.description = $sce.trustAsHtml(data.description);
                 },
-                quote: function() {
-                    return null;
+                quote: function(data) {
+                	  data.text = $sce.trustAsHtml(data.text);
+                    data.source = $sce.trustAsHtml(data.source);
                 },
                 answer: function() {
                     return null;
@@ -326,10 +332,6 @@
                             throw Error('Failed to load JSON data: ', url, ' (HTTP status:', resp.status, resp.statusText, ')');
                         }
                         return $q.reject(resp);
-                    }
-
-                    function isFunction(func) {
-                        return func != null && Object.prototype.toString.call(func) == '[object Function]';
                     }
                 }
 
@@ -407,7 +409,7 @@
                             return $scope.hwnd();
                         }
                     } else {
-                        return checkWhenEnabled = false;
+                        return (checkWhenEnabled = false);
                     }
                 };
 
@@ -432,7 +434,7 @@
                             return callback.call();
                         } else {
                             if (!timeout) {
-                                return timeout = $interval(this.later(callback), remaining, 1);
+                                return (timeout = $interval(this.later(callback), remaining, 1));
                             }
                         }
                     },
@@ -452,7 +454,7 @@
                 });
 
                 var handleScrollDistance = function(v) {
-                    return scrollDistance = parseFloat(v) || 0;
+                    return (scrollDistance = parseFloat(v) || 0);
                 };
                 handleScrollDistance($attrs.distance);
 
