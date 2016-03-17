@@ -1,147 +1,148 @@
 <!DOCTYPE html>
 <html lang="en-US">
 <head>
-<meta charset="utf-8">
-<title>Angular infinite scroll</title>
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="index, follow">
-<link rel="stylesheet" href="./stylesheets/style.css">
-<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,300italic,600' rel='stylesheet' type='text/css'>
-<script src="./js/lib/angular.min.js"></script>
-<script src="./js/angular-loader.js"></script>
-<script src="./js/lib/angular-common.js"></script>
-<script src="./js/app.js"></script>
-<!-- common social tags -->
+    <meta charset="utf-8">
+    <title>Angular infinite scroll</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="index, follow">
+    <link rel="stylesheet" href="./stylesheets/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:500,400italic,700italic,300,100,700,500italic,400%7CMaterial+Icons+Extended%7COpen+Sans:300,400,600,700%7CProduct+Sans:400&amp;lang=ru" rel="stylesheet">
+    <script src="./js/lib/angular.min.js"></script>
+    <script src="./js/angular-loader.js"></script>
+    <script src="./js/lib/angular-common.js"></script>
+    <script src="./js/app.js"></script>
+    <!-- common social tags -->
 </head>
-<body ng-app="tmblrApp" ng-controller="tmblrCtrl">
-<header id="main-header" class="clear" s-class="sticky" sticky>
-	<div class="header-inner center">
-	<div class="header-left">
-		<a href="/" class="logo he-xt">{Title}</a>
-		<div class="main-nav">
-			<ul class="menu-nav">
-				<li><a href="#home" ng-click="navLink({type: null})">Home</a></li>
-				<li><a href="/archive">Archive</a></li>
-			</ul>
-		</div>
-	</div>
-	<div class="header-middle">
-		<div class="headerSearch" role="search">
-				<form action="/search" method="get" class="main-search">				
-					<input type="search" name="q" placeholder="Search..." value="" autocomplete="on">
-					<button value="Search" type="submit" class="he-xt">Search</button>
-				</form>
-		</div>
-	</div>
-	<div class="header-right clear">
-	<nav class="main-nav" role="navigation">
-		<ul class="menu-nav">
-		   <li><a href="#photos" ng-click="navLink({type:'photo'})">Pictures</a></li>
-		   <li><a href="#music" ng-click="navLink({type:'audio'})">Music</a></li>
-		   <li><a href="#videos" ng-click="navLink({type:'video'})">Videos</a></li>
-		   <li><a href="#links" ng-click="navLink({type:'link'})">Links</a></li>
-		   <li><em><a href="#" class="btn-push">Grafire</a></em></li>
-		</ul>
-	</nav>
-	</div>
-	</div>
-</header>
-<main id="content">
-<div id="primary" buffer-status="buffer" hwnd="nextPage(blog.user)" scroller>
-	<div class="main-content" role="main">
-		<section class="page-element" column-header="content" prefix="item"></section>
-	</div>
-	<!-- #content -->
-</div>
-<!-- #primary -->
-<div class="widget-area" role="complementary">
-	<aside id="menu" class="widget">	
-	<div class="panel dropdown">
-		<h1><a href="#" class="dropdown-toggle" data-toggle="dropdown">{{blog.user}}</a></h1>
-		<ul class="dropdown-menu">
-          <li><a href="#" ng-click="navLink({user:'grafire'})">Grafire</a></li>
-          <li><a href="#" ng-click="navLink({user:'staff'})">Tumblr Staff</a></li>
-      </ul>
-</div>
-		<div class="tf"><p>Test</p></div>
-	</aside>
-	<aside id="pop-video" class="widget">
-		<h4>Popular Videos</h4>
-		<a href="" title="name"><img src="" class="previmg" height="190px"></a>
-		<div class="tf"><h3>Example H3 Title</h3></div>
-	</aside>
-	
-	<aside id="pop-music" class="widget">
-		<h4 color="black">Popular Music</h4>
-		<div class="tf"><p>text</p></div>
-	</aside>
-</div>
-<!-- #secondary -->
-</main>
-<div id="banner1"></div>
-<script type="text/javascript" >
-    angular.module('tmblrApp', ['mainApp'])
-        .value('$tmblrConfig', {
-            user: 'esc001' || getName(location.hostname), // short name used to uniquely identify a blog
-            options: {
-                type: null, // (null = all), text, photo, audio, video, links
-                limit: 10, // number of results to return: 1–20, inclusive
-                offset: 0 // post number to start at [0 (first post)]
+<script>
+    var App = {
+        provider: 1,
+        options: {
+            user: 'esc001',
+            params: {
+                limit: 10,
+                offset: 0
             }
-        })
-        .run(function($templateCache) {
-            var templates, header, footer;
-            templates = {
-                text: '<div class="cover-caption" ng-bind-html="::item.body"></div>',
-                photo: '<a href="{{::item.short_url}}"><img src="{{::item.photos.alt.url}}" class="previmg" alt=""></a><div class="cover-caption" ng-bind-html="::item.caption"></div>',
-                video: '<div ng-bind-html="::item.player"></div><div class="cover-caption" ng-bind-html="::item.caption"></div>',
-                music: '<div ng-bind-html="::item.player"></div><div class="cover-caption" ng-bind-html="::item.caption"></div>',
-                link: '<div class="link-text"><a href="{{::item.source_url}}" ng-bind="::item.title"></a><p ng-bind="::item.source_title"></p></div><div class="cover-caption" ng-bind-html="::item.description"></div>'
-            };
-
-            header = '<header class="cover-user-wrap"><div class="vt"><img src="{{::item.avatar}}" alt=""></div><div class="iu"><h3 class="hu">@{{::item.source_title}}</h3><div class="dt">{{::item.timestamp*1000|date:"dd MMM yyyy"}}</div></div></header>';
-            footer = '<div class="cover-fields" ng-bind-html="::item.tags"></div><div class="cover-stat-wrap"><span class="cover-stat stat-notes" ng-bind="::item.note_count"></span> Notes<span onclick="window.open("{{::item.post_url}}#comments"); return false;" class="cover-stat stat-reblog">Reblog</span><span onclick="window.open("{{::item.post_url}}#comments"); return false;" class="cover-stat stat-comments">Commens</span></div>';
-
-            for (var index in templates) {
-                $templateCache.put(index, header + templates[index] + footer);
-            }
-        });
-    var getName = function(ln) {
-        if (ln.indexOf('www.') != -1) {
-            return ln.substr(4, ln.indexOf('.', 4));
         }
-        return ln.substr(0, ln.indexOf('.'));
-    }  
+    }
 </script>
-<!-- Footer -->
-<footer>
-<div class="fixable-wrapper">
-<div class="ft-column1 waypoint">
-<a href="http://github.com/uzen/"><em>Get it theme</em></a>
+<body ng-app="tmblrApp" ng-controller="tmblrCtrl">
+<div class="js-topbar" class="clear" sticky bottom-class="main-content" use-placeholder="false" body-class="scroll">
+    <div class="header-inner center">
+        <div class="header-left">
+            <a href="/#home" class="logo he-xt">Porn [Photo, Video, Music]</a>
+        </div>
+        <div class="header-middle">
+            <div class="headerSearch" role="search">
+                <div class="main-search">
+                    <live-search live-search-callback="searchCallback" live-search-item-template="searchTemplate" live-search-select="title" live-search-callback="navTag()" ng-model="searchLine"></live-search>
+                </div>
+            </div>
+        </div>
+        <div class="header-right clear">
+            <div class="dropdown">
+                <span class="dropdown-toggle"><i class="icon-list"></i></span>
+                <ul class="dropdown-menu right">
+                    <li><a href="/?user=k-piglet/">Katerina Piglet</a></li>
+                    <li><a href="/?user=eriction/">Eriction</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="ft-column2 waypoint">
-<a alt="more posts" href="/random"><em>What's New</em></a>
-</div>
-<div class="ft-column3 waypoint">
-<a href="/sumbit"><em>What do you think?</em></a>
-</div>
-</div>
-<div class="ft-data">
-<div class="ft-logo"><img src="" width="151px" height="83px"></div>
-<div class="ft-button">
-	<div class="ft-social">
-		<a target="_blank" href="/" class="fb"></a>	
-		<a target="_blank" href="/" class="tw"></a>
-		<a target="_blank" href="/rss" class="rss"></a>
-	</div>
-	<a rel="nofollow" href="#" onclick="window.scrollTo(0,0);return !1;" class="btn-push light">Scroll UP</a>
-</div>
-<div class="ft-main">
-<p class="ft-meta">© 2015 Angular infinite scroll.</p>
-<p class="ft-meta">{Description}</p>
-</div>
-</div>
-</footer>
+<header id="main-header">
+    <div class="cover-content">
+        <div class="profile">
+            <div class="profile-inner">
+                <div class="profile-header">
+                    <div class="profile-headerBg">
+                        <img alt="" src="//pbs.twimg.com/profile_banners/275220510/1454171958/1500x500" style="transform: none;">
+                    </div>
+                </div>
+                <div class="profile-navBar">
+                    <div class="grid-cell profile">
+                        <div class="profileAvatar">
+                            <img src="//api.tumblr.com/v2/blog/grafire.tumblr.com/avatar/128" class="ProfileAvatar-image" alt="">
+                        </div>
+                        <div class="profileDesc">
+                            <div class="link">@grafire</div>
+                            <div class="name">Uzen Else</div>
+                        </div>
+                    </div>
+                    <div class="grid-cell footer-stats">
+                        <div class="profileStats">
+
+                        </div>
+                        <nav class="profileMenu" role="navigation">
+                            <a href="/?user=grafire&tag=hot">hot</a>
+                            <a href="/?user=grafire&tag=gif">gifs</a>
+                            <a href="/?user=grafire&tag=cute">cute</a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</header>
+    <main id="content">
+        <div id="primary" buffer-status="status" hwnd="nextPage()" scroller>
+            <div class="main-content" role="main">
+                <section class="page-element" column-header="buffer" prefix="item"></section>
+            </div>
+            <!-- #content -->
+        </div>
+        <!-- #primary -->
+        <div class="widget-area" role="complementary">
+            <aside id="pop-video" class="widget">
+                <h4 class="title">Popular Videos</h4>
+                <a href="" title="name"><img src="SQegngT.jpg" class="previmg"></a>
+                <div class="tf">My weekly mixtape of fresh music. Enjoy new discoveries and deep cuts chosen just for you.</div>
+            </aside>
+
+            <aside id="pop-music" class="widget">
+                <h4 class="title">Popular Music</h4>
+                <div class="tf">
+                    <div class="dropdown">
+                        <a type="button" data-toggle="dropdown" href="#" class="btn dropdown-toggle">Grafire <i class="arrow"></i></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" ng-click="navLink({user:'grafire'})">Grafire</a></li>
+                            <li><a href="#" ng-click="navLink({user:'staff'})">Tumblr Staff</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </aside>
+        </div>
+        <!-- #secondary -->
+    </main>
+    <!-- Footer -->
+    <footer>
+        <div class="fixable-wrapper">
+            <div class="ft-column1 waypoint">
+                <a href="http://github.com/uzen/"><em>Get it theme</em></a>
+            </div>
+            <div class="ft-column2 waypoint">
+                <a alt="more posts" href="/random"><em>What's New</em></a>
+            </div>
+            <div class="ft-column3 waypoint">
+                <a href="/sumbit"><em>What do you think?</em></a>
+            </div>
+        </div>
+        <div class="ft-data">
+            <div class="ft-logo"><img src="" width="151px" height="83px"></div>
+            <div class="ft-button">
+                <div class="ft-social">
+                    <a target="_blank" href="/" class="fb"></a>
+                    <a target="_blank" href="/" class="tw"></a>
+                    <a target="_blank" href="/rss" class="rss"></a>
+                </div>
+                <a rel="nofollow" href="#" onclick="window.scrollTo(0,0);return !1;" class="btn-push">Scroll UP</a>
+            </div>
+            <div class="ft-main">
+                <p class="ft-meta">© 2015 Angular infinite scroll.</p>
+                <p class="ft-meta">This is a Blog for people 18+. Here you will find high quality pictures with girls in art, NSFW, fashion, erotic, photography. This Blog is the missing link between Art and Porn.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
