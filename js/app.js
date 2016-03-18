@@ -151,7 +151,7 @@
     function templateCache($templateCache) {
         var bodyTemp = {
                 text: '%3Cdiv%20class%3D%22article-content%22%3E%3Cdiv%20class%3D%22cover-caption%22%20ng-bind-html%3D%22%3A%3Aitem.body%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E',
-                photo: '%3Ca%20href%3D%22%7B%7B%3A%3Aitem.short_url%7D%7D%22%3E%3Cimg%20src%3D%22%7B%7B%3A%3Aitem.photos.alt.url%7D%7D%22%20class%3D%22previmg%22%20alt%3D%22%22%3E%3Cdiv%20class%3D%22list%22%20itemphotos%3E%3C%2Fdiv%3E%3C%2Fa%3E%3Cdiv%20class%3D%22article-content%22%3E%3Cdiv%20class%3D%22cover-fields%22%20itemtags%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%22%20ng-bind-html%3D%22%3A%3Aitem.caption%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E',
+                photo: '%3Ca%20href%3D%22%7B%7B%3A%3Aitem.short_url%7D%7D%22%20class%3D%22photoset%22%20itemphotos%3E%3C%2Fa%3E%3Cdiv%20class%3D%22article-content%22%3E%3Cdiv%20class%3D%22cover-fields%22%20itemtags%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%22%20ng-bind-html%3D%22%3A%3Aitem.caption%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E',
                 video: '%3Cdiv%20ng-bind-html%3D%22%3A%3Aitem.player%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22article-content%22%3E%3Cdiv%20class%3D%22cover-fields%22%20itemtags%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%22%20ng-bind-html%3D%22%3A%3Aitem.caption%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E',
                 audio: '%3Cdiv%20ng-bind-html%3D%22%3A%3Aitem.player%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22article-content%22%3E%3Cdiv%20class%3D%22cover-fields%22%20itemtags%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%22%20ng-bind-html%3D%22%3A%3Aitem.caption%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E',
                 link: '%3Cdiv%20class%3D%22link-text%22%3E%3Ca%20href%3D%22%7B%7B%3A%3Aitem.source_url%7D%7D%22%20ng-bind%3D%22%3A%3Aitem.title%22%3E%3C%2Fa%3E%3Cp%20ng-bind%3D%22%3A%3Aitem.source_title%22%3E%3C%2Fp%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%20article-content%22%20ng-bind-html%3D%22%3A%3Aitem.description%22%3E%3C%2Fdiv%3E',
@@ -167,7 +167,7 @@
     function templatePhotoset() {
         return {
             restrict: 'A',
-            template: '<img src="{{photo.alt.url}}" ng-repeat="photo in ::item.photos" class="previmg-mini" alt="">'
+            template: '<div ng-repeat="photo in ::item.photos"><img src="{{photo.alt.url}}" class="previmg"></div>'
         };
     }
 

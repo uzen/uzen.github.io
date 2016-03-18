@@ -684,6 +684,22 @@ i[class^="icon-"], i[class*=" icon-"] {
     color: #555;
     font-weight: 600;
 }
+.photoset {
+  font-size: 0;
+  display: -ms-flexbox;
+  -ms-flex-wrap: wrap;
+  -ms-flex-direction: column;
+  -webkit-flex-flow: row wrap; 
+  flex-flow: row wrap; 
+  display: -webkit-box;
+  display: flex;
+}
+.photoset div { 
+  -webkit-box-flex: auto;
+  -ms-flex: auto;
+  flex: auto; 
+  width: 200px; 
+}
 /* Sidebar */
 
 .widget-area, .profileStats {

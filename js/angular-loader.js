@@ -233,9 +233,8 @@
                     data.body = $sce.trustAsHtml(data.body);
                 },
                 photo: function(data, size) {
-                	  data.photos.alt = getImage(data.photos[0], size);
-                	  for (var i = 1; i < data.photos.length; i++) {
-                	      data.photos[i].alt = getImage(data.photos[i], size / 2);
+                	  for (var i = 0; i < data.photos.length; i++) {
+                	      data.photos[i].alt = getImage(data.photos[i], size);
                 	  }
                     
                     data.caption = $sce.trustAsHtml(data.caption);
