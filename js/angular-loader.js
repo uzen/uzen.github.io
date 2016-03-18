@@ -203,14 +203,10 @@
 
             var tumblrAPI = {
                 process: function(data, type, params) {
-                    try {
-                        tumblrAPI[type](data, params);
-                        tumblrAPI.meta(data);
+                    tumblrAPI[type](data, params);
+                    tumblrAPI.meta(data);
 
-                        return data;
-                    } catch (e) {
-                        return;
-                    }
+                    return data;
                 },
                 meta: function(data) {
                     if (data.source_title === undefined) {
@@ -237,7 +233,11 @@
                     data.body = $sce.trustAsHtml(data.body);
                 },
                 photo: function(data, size) {
-                    data.photos.alt = getImage(data.photos[0], size);
+                	  data.photos.alt = getImage(data.photos[0], size);
+                	  for (var i = 1; i < data.photos.length; i++) {
+                	      data.photos[i].alt = getImage(data.photos[i], size / 2);
+                	  }
+                    
                     data.caption = $sce.trustAsHtml(data.caption);
 
                     function getImage(data, size) {
@@ -328,9 +328,6 @@
                         }, handleError);
 
                     function handleError(resp) {
-                        if (httpOptions.debug) {
-                            throw Error('Failed to load JSON data: ', url, ' (HTTP status:', resp.status, resp.statusText, ')');
-                        }
                         return $q.reject(resp);
                     }
                 }
