@@ -104,7 +104,7 @@
             url;
 
         var updateUrl = function(user) {
-                url = "http://api.tumblr.com/v2/blog/" + user + ".tumblr.com/posts";
+                url = "//api.tumblr.com/v2/blog/" + user + ".tumblr.com/posts";
             },
             jsonFormatter = function(data) {
                 for (var i in data) {

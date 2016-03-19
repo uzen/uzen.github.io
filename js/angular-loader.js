@@ -8,8 +8,7 @@
                     var cols, windowElement, styleSheet;
 
                     if ($attrs.columnHeader === undefined || $scope[$attrs.columnHeader] === undefined) {
-                        console.log("columnHeader hasn't been initialized");
-                        return;
+                        throw new Exception("columnHeader hasn't been initialized");
                     }
 
                     windowElement = angular.element($window);
@@ -222,21 +221,21 @@
                     }
                     //url or blog name
                     function testURL(url) {
-                    		var isUrl = url;
-                    		if (isUrl) {
-                    			isUrl = data.source_title.indexOf('.') != -1;
-                    		}
-                    		return isUrl;
+                        var isUrl = url;
+                        if (isUrl) {
+                            isUrl = data.source_title.indexOf('.') != -1;
+                        }
+                        return isUrl;
                     }
                 },
                 text: function(data) {
                     data.body = $sce.trustAsHtml(data.body);
                 },
                 photo: function(data, size) {
-                	  for (var i = 0; i < data.photos.length; i++) {
-                	      data.photos[i].alt = getImage(data.photos[i], size);
-                	  }
-                    
+                    for (var i = 0; i < data.photos.length; i++) {
+                        data.photos[i].alt = getImage(data.photos[i], size);
+                    }
+
                     data.caption = $sce.trustAsHtml(data.caption);
 
                     function getImage(data, size) {
@@ -272,7 +271,7 @@
                     data.description = $sce.trustAsHtml(data.description);
                 },
                 quote: function(data) {
-                	  data.text = $sce.trustAsHtml(data.text);
+                    data.text = $sce.trustAsHtml(data.text);
                     data.source = $sce.trustAsHtml(data.source);
                 },
                 answer: function() {
@@ -348,7 +347,7 @@
             }
 
             function linkFn($scope, $elem, $attrs) {
-                var win, container, scrollDistance, scrollEnabled, checkWhenEnabled, throttle_ms, immediateCheck;
+                var win, container, scrollDistance, scrollEnabled, checkInterval, checkWhenEnabled, throttle_ms, immediateCheck;
 
                 win = angular.element($window);
                 //scroll events a maximum of once every x milliseconds, optimal 250ms
@@ -356,6 +355,7 @@
                 /*	if set as false, the first call of manually 
                 	(eg scrolling or pressing the button) 	*/
                 immediateCheck = true;
+                checkInterval = false;
 
                 var getElemByHeight = function(elem) {
                     elem = elem[0] || elem;
@@ -405,7 +405,10 @@
                             return $scope.hwnd();
                         }
                     } else {
-                        return (checkWhenEnabled = false);
+                        if (checkInterval) {
+                            $interval.cancel(checkInterval);
+                        }
+                        return checkWhenEnabled = false;
                     }
                 };
 
@@ -416,8 +419,7 @@
                         this.previous = new Date().getTime();
                         $interval.cancel(this.timeout);
                         this.timeout = null;
-                        callback.call();
-                        return null;
+                        return callback.call();
                     },
                     func: function(callback, wait) {
                         var now, remaining, timeout = this.timeout;
@@ -430,7 +432,7 @@
                             return callback.call();
                         } else {
                             if (!timeout) {
-                                return (timeout = $interval(this.later(callback), remaining, 1));
+                                return timeout = $interval(this.later(callback), remaining, 1);
                             }
                         }
                     },
@@ -450,7 +452,7 @@
                 });
 
                 var handleScrollDistance = function(v) {
-                    return (scrollDistance = parseFloat(v) || 0);
+                    return scrollDistance = parseFloat(v) || 0;
                 };
                 handleScrollDistance($attrs.distance);
 
@@ -461,6 +463,8 @@
                     container = newContainer;
                     if (newContainer != null) {
                         return container.bind('scroll', handler);
+                    } else {
+                        throw new Exception("invalid container element.");
                     }
                 };
                 /*
@@ -488,10 +492,12 @@
                     immediateCheck = $scope.$eval($attrs.immediateCheck);
                 };
 
-                return $interval((function() {
-                    if (immediateCheck)
-                        return handler();
-                }), 0, 1);
+                return checkInterval = $interval((function() {
+                    if (immediateCheck) {
+                        handler();
+                    }
+                    return $interval.cancel(checkInterval);
+                }));
             }
         });
 }());
