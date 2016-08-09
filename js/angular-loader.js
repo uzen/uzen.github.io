@@ -219,21 +219,18 @@
                     } else {
                         data.avatar = '//api.tumblr.com/v2/blog/' + data.source_title + '.tumblr.com/avatar/40';
                     }
-                    //url or blog name
+                    //url or name
                     function testURL(url) {
-                        var isUrl = url;
-                        if (isUrl) {
-                            isUrl = data.source_title.indexOf('.') != -1;
-                        }
-                        return isUrl;
+                        var objRE = /^[a-zA-Z0-9\-]+$/i;
+                        return objRE.test(url);
                     }
                 },
                 text: function(data) {
                     data.body = $sce.trustAsHtml(data.body);
                 },
-                photo: function(data, size) {
+                photo: function(data, params) {
                     for (var i = 0; i < data.photos.length; i++) {
-                        data.photos[i].alt = getImage(data.photos[i], size);
+                        data.photos[i].alt = getImage(data.photos[i], params.SIZE);
                     }
 
                     data.caption = $sce.trustAsHtml(data.caption);
@@ -275,10 +272,10 @@
                     data.source = $sce.trustAsHtml(data.source);
                 },
                 answer: function() {
-                    return null;
+                    data.answer = $sce.trustAsHtml(data.answer);
                 },
                 chat: function() {
-                    return null;
+                    data.body = $sce.trustAsHtml(data.body);
                 },
                 ads: function() {
                     return null;
@@ -288,7 +285,7 @@
             return {
                 tumblr: tumblrAPI
             };
-        })
+        }) 
         .provider('$dataRequest', function() {
             var httpOptions;
 
@@ -335,53 +332,51 @@
                 return handleRequestFn;
             }];
 
-        })
-        .directive('scroller', function($window, $interval) {
-            return {
+        })     
+        .directive('scroller', [
+        	'$window', '$interval', ($window, $interval) =>
+            ({
                 restrict: 'A',
                 scope: {
                     hwnd: '&',
                     bufferStatus: '=?'
                 },
-                link: linkFn
-            }
+                link($scope, $elem, $attrs) {
+               	const win = angular.element($window);
+               	
+               	let container = null;
+                var scrollDistance, scrollEnabled, checkWhenEnabled, immediateCheck;
 
-            function linkFn($scope, $elem, $attrs) {
-                var win, container, scrollDistance, scrollEnabled, checkInterval, checkWhenEnabled, throttle_ms, immediateCheck;
-
-                win = angular.element($window);
-                //scroll events a maximum of once every x milliseconds, optimal 250ms
-                throttle_ms = null;
                 /*	if set as false, the first call of manually 
                 	(eg scrolling or pressing the button) 	*/
                 immediateCheck = true;
-                checkInterval = false;
+                let checkInterval = false;
 
-                var getElemByHeight = function(elem) {
-                    elem = elem[0] || elem;
-                    if (isNaN(elem.offsetHeight)) {
-                        return elem.document.documentElement.clientHeight;
-                    } else {
-                        return elem.offsetHeight;
-                    }
+                function getElemByHeight(elem) {
+                    const _elem = elem[0] || elem;
+                    
+                    if (isNaN(_elem.offsetHeight)) {
+                        return _elem.document.documentElement.clientHeight;
+                    }        
+                    return _elem.offsetHeight;
                 };
 
-                var offsetTop = function(elem) {
+                function offsetTop(elem) {
                     if (!elem[0].getBoundingClientRect || elem.css('none')) {
-                        return;
+                        return undefined;
                     }
                     return elem[0].getBoundingClientRect().top + pageYOffset(elem);
                 };
 
-                var pageYOffset = function(elem) {
-                    elem = elem[0] || elem;
+                function pageYOffset(elem) {
+                    const _elem = elem[0] || elem;
                     if (isNaN(window.pageYOffset)) {
-                        return elem.document.documentElement.scrollTop;
-                    } else {
-                        return elem.ownerDocument.defaultView.pageYOffset;
-                    }
+                        return _elem.document.documentElement.scrollTop;
+                    }  
+                    return _elem.ownerDocument.defaultView.pageYOffset;
                 };
-                var handler = function() {
+                
+                function handler() {
                     var containerBottom, elementBottom, remaining, shouldScroll, containerTopOffset;
 
                     if (container === win) {
@@ -390,7 +385,7 @@
                     } else {
                         containerBottom = getElemByHeight(container);
                         containerTopOffset = 0;
-                        if (offsetTop(container) !== void 0) {
+                        if (offsetTop(container) !== undefined) {
                             containerTopOffset = offsetTop(container);
                         }
                         elementBottom = offsetTop($elem) - containerTopOffset + getElemByHeight($elem);
@@ -410,41 +405,6 @@
                         }
                         return checkWhenEnabled = false;
                     }
-                };
-
-                var throttle = {
-                    timeout: null,
-                    previous: 0,
-                    later: function(callback) {
-                        this.previous = new Date().getTime();
-                        $interval.cancel(this.timeout);
-                        this.timeout = null;
-                        return callback.call();
-                    },
-                    func: function(callback, wait) {
-                        var now, remaining, timeout = this.timeout;
-                        now = new Date().getTime();
-                        remaining = wait - (now - this.previous);
-                        if (remaining <= 0) {
-                            $interval.cancel(timeout);
-                            timeout = null;
-                            this.previous = now;
-                            return callback.call();
-                        } else {
-                            if (!timeout) {
-                                return timeout = $interval(this.later(callback), remaining, 1);
-                            }
-                        }
-                    },
-                    get: function(callback, wait) {
-                        return function() {
-                            throttle.func(callback, wait);
-                        }
-                    }
-                };
-
-                if (throttle_ms != null) {
-                    handler = throttle.get(handler, throttle_ms);
                 };
 
                 $scope.$on('$destroy', function() {
@@ -491,13 +451,16 @@
                 if ($attrs.immediateCheck != null) {
                     immediateCheck = $scope.$eval($attrs.immediateCheck);
                 };
-
-                return checkInterval = $interval((function() {
+                
+                checkInterval = $interval(function() {
                     if (immediateCheck) {
                         handler();
                     }
                     return $interval.cancel(checkInterval);
-                }));
+                });
+                
+                return checkInterval;
             }
-        });
+        })
+     ]);
 }());
