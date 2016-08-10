@@ -221,8 +221,9 @@
                     }
                     //url or name
                     function testURL(url) {
-                        var objRE = /^[a-zA-Z0-9\-]+$/i;
-                        return objRE.test(url);
+                        //var objRE = /(([a-z]+:\/\/)?(([a-z0-9\-]+\.)+(tumblr\.com)))/i;
+                        //return objRE.test(url);
+                        return url.indexOf('.') !== -1
                     }
                 },
                 text: function(data) {

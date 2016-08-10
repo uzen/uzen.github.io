@@ -159,8 +159,8 @@
                 audio: '%3Cdiv%20ng-bind-html%3D%22%3A%3Aitem.player%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22article-content%22%3E%3Cdiv%20class%3D%22cover-fields%22%20itemtags%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%22%20ng-bind-html%3D%22%3A%3Aitem.caption%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E',
                 link: '%3Cdiv%20class%3D%22link-text%22%3E%3Ca%20href%3D%22%7B%7B%3A%3Aitem.source_url%7D%7D%22%20ng-bind%3D%22%3A%3Aitem.title%22%3E%3C%2Fa%3E%3Cp%20ng-bind%3D%22%3A%3Aitem.source_title%22%3E%3C%2Fp%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%20article-content%22%20ng-bind-html%3D%22%3A%3Aitem.description%22%3E%3C%2Fdiv%3E',
                 quote: '%3Cdiv%20ng-bind-html%3D%22%3A%3Aitem.text%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22article-content%22%3E%3Cdiv%20class%3D%22cover-fields%22%20itemtags%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22cover-caption%22%20ng-bind-html%3D%22%3A%3Aitem.source%22%3E%3C%2Fdiv%3E%3C%2Fdiv%3E',
-                answer: '',
-                chat: ''
+                answer: '<!-- template not found /-->',
+                chat: '<!-- template not found /-->'
             },
             headerTemp = '%3Cheader%20class%3D%22cover-user-wrap%22%3E%3Cdiv%20class%3D%22vt%22%3E%3Cimg%20src%3D%22%7B%7B%3A%3Aitem.avatar%7D%7D%22%20alt%3D%22%22%3E%3C%2Fdiv%3E%3Cdiv%20class%3D%22iu%22%3E%3Ch3%20class%3D%22hu%22%3E%40%7B%7B%3A%3Aitem.source_title%7D%7D%3C%2Fh3%3E%3Cdiv%20class%3D%22dt%22%20itemdate%3E%3C%2Fdiv%3E%3C%2Fdiv%3E%3C%2Fheader%3E',
             footerTemp = '%3Cfooter%20class%3D%22cover-stat%22%3E%3Ca%20href%3D%22%7B%7B%3A%3Aitem.short_url%7D%7D%22%20class%3D%22stat-notes%22%3E%3Cb%3E%7B%7B%3A%3Aitem.note_count%7D%7D%3C%2Fb%3E%20shares%3C%2Fa%3E%3C%2Ffooter%3E';
